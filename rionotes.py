@@ -1,5 +1,6 @@
 """Allows creation of notes based on pure soundwaves."""
-from types import MappingProxyType
+from os.path import join
+from os import sep
 
 import numpy as np
 from IPython.display import Audio, display
@@ -15,6 +16,7 @@ PLOT_LEN = 1000
 CHART_SIZE = (15, 4)
 ADSR_SHARES = (0.1, 0.3, 0.9)
 ADSR_LEVELS = (1.0, 0.7, 0.6)
+WAV_FOLDER = 'src'
 
 
 class Sound(object):
@@ -26,6 +28,7 @@ class Sound(object):
 
     def display(self):
         """Use Jupyter feature to render interactive audio."""
+        self.save()
         display(Audio(self.wave, rate=self._rate))
 
     def save(self, extension='wav'):
@@ -36,10 +39,10 @@ class Sound(object):
                 either 'wav' or 'txt'
         """
         if extension == 'wav':
-            filename = '{0}.wav'.format(self.name)
-            wavfile.write(filename, self._rate, self.wave)
+            wavfile.write(self._wav_file_path, self._rate, self.wave)
         if extension == 'txt':
-            filename = '{0}_.txt'.format(self.name)
+            filename = '{0}.txt'.format(self.name)
+            filename = join(WAV_FOLDER, filename)
             np.savetxt(filename, self.wave)
 
     def plot(self, len_limit: int = PLOT_LEN, full=False):
@@ -109,7 +112,7 @@ class Note(Sound):
         if self._wave_name != 'mix':
             self.name = '{0}_{1}'.format(self.name, self._wave_name)
             self._note_name = name
-        self._wav_file_path = '{0}.wav'.format(self.name)
+        self._wav_file_path = '{0}{1}{2}.wav'.format(WAV_FOLDER, sep, self.name)
         self._rate = Note.sampling_rate
         self._sound_array_len = self._rate * Note.duration
         self.timeline = timeline
