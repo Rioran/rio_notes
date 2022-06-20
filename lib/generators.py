@@ -1,4 +1,7 @@
 """Functions for wave generation & transformation."""
+from types import MappingProxyType
+
+import numpy as np
 
 
 def generate_wave_sine(timeline: np.array, frequency: float):
