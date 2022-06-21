@@ -1,14 +1,13 @@
 """Allows creation of notes based on pure soundwaves."""
 from os.path import join
-from os import sep
 
 import numpy as np
 from IPython.display import Audio, display
 from matplotlib.pyplot import figure, plot
 from scipy.io import wavfile
 
-from lib.notes import NOTES
 from lib.generators import WAVE_FUNCTIONS, apply_linearity
+from lib.notes import NOTES
 
 SAMPLING_RATE = 44100  # like 44.1 KHz for MP3
 DURATION = 2  # seconds
@@ -112,7 +111,7 @@ class Note(Sound):
         if self._wave_name != 'mix':
             self.name = '{0}_{1}'.format(self.name, self._wave_name)
             self._note_name = name
-        self._wav_file_path = '{0}{1}{2}.wav'.format(WAV_FOLDER, sep, self.name)
+        self._wav_file_path = '{0}.wav'.format(join(WAV_FOLDER, self.name))
         self._rate = Note.sampling_rate
         self._sound_array_len = self._rate * Note.duration
         self.timeline = timeline
