@@ -1,4 +1,5 @@
 """Functions for wave generation & transformation."""
+from random import random
 from types import MappingProxyType
 
 import numpy as np
@@ -86,11 +87,11 @@ def generate_wave_backsaw(timeline: np.array, frequency: float):
 
 
 WAVE_FUNCTIONS = MappingProxyType({
-    'sin': generate_wave_sine,
-    'square': generate_wave_square,
-    'triangular': generate_wave_triangular,
-    'saw': generate_wave_saw,
-    'backsaw': generate_wave_backsaw,
+    's': generate_wave_sine,
+    'sq': generate_wave_square,
+    't': generate_wave_triangular,
+    'sw': generate_wave_saw,
+    'bs': generate_wave_backsaw,
 })
 
 
@@ -111,3 +112,34 @@ def apply_linearity(array, start_ratio, end_ratio):
     """
     multipliers = np.linspace(start_ratio, end_ratio, num=len(array))
     return array * multipliers
+
+
+def normalize_wave(wave: np.array) -> np.array:
+    """Reduce wave values to range 0 to 1.
+
+    Parameters:
+        wave: np.array
+            any 1d array with numeric values
+
+    Returns:
+        np.array
+            calculated transformation
+    """
+    return wave / np.max(np.absolute(wave))
+
+
+def random_shift(number: float, distance: float) -> float:
+    """Distort value by a distance, meant for np.array.
+
+    Parameters:
+        number: float
+            what number to distort
+        distance: float
+            percentage of shift radius
+
+    Returns:
+        float
+            shifted number
+    """
+    shift = 1 + distance * (random() * 2 - 1)
+    return number * shift
