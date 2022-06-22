@@ -125,15 +125,21 @@ def normalize_wave(wave: np.array) -> np.array:
         np.array
             calculated transformation
     """
-    return wave / np.max(np.absolute(wave))
+    divisor = np.max(np.absolute(wave))
+    # No need to divide 0 by 0
+    if divisor == 0:
+        return wave
+    # Trick with the small number is here to prevent sound from 
+    # being abs(1), which sounds really bad in wav file
+    return wave / divisor * 0.99
 
 
-def random_shift(number: float, distance: float) -> float:
+def random_shift(numbers: np.array, distance: float) -> float:
     """Distort value by a distance, meant for np.array.
 
     Parameters:
-        number: float
-            what number to distort
+        numbers: np.array
+            what numbers to distort
         distance: float
             percentage of shift radius
 
@@ -141,5 +147,6 @@ def random_shift(number: float, distance: float) -> float:
         float
             shifted number
     """
-    shift = 1 + distance * (random() * 2 - 1)
-    return number * shift
+    shifts = np.random.rand(len(numbers))
+    shift = 1 + distance * (shifts * 2 - 1)
+    return numbers * shift

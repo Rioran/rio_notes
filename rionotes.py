@@ -12,13 +12,8 @@ from lib.generators import (
 )
 from lib.notes import NOTES
 
-BPM = 144
 SAMPLING_RATE = 44100  # like 44.1 KHz for MP3
-NOTE_LENGTH = SAMPLING_RATE * 60 / BPM
-NOTE_DURATION = NOTE_LENGTH / SAMPLING_RATE
 CHART_SIZE = (15, 4)
-# t triangular, s sine, sq square, sw saw, bs backsaw
-WAVE_TYPE = 't'
 # About ADSR: https://en.wikipedia.org/wiki/Envelope_(music)
 ADSR_ENABLED = True
 ADSR_SHARES = (0.05, 0.3, 0.9)
@@ -29,6 +24,40 @@ def reset_cashes():
     """Reset cashes for production classes waves."""
     for entity in (Chord, Note, Timeline):
         entity.wave_cash = {0: 0}
+
+
+class Config(object):
+    """Changeable options."""
+
+    BPM = 144
+    NOTE_LENGTH = 18375
+    NOTE_DURATION = 0.4166666666666667
+    # t triangular, s sine, sq square, sw saw, bs backsaw
+    WAVE_TYPE = 't'
+
+    @classmethod
+    def set_bpm(cls, new_value: int):
+        """Set new bpm value and recalculate dependant options.
+
+        Parameters:
+            new_value: int
+                desired beats per minute
+        """
+        cls.BPM = new_value
+        cls.NOTE_LENGTH = int(SAMPLING_RATE * 60 / cls.BPM)
+        cls.NOTE_DURATION = cls.NOTE_LENGTH / SAMPLING_RATE
+        reset_cashes()
+
+    @classmethod
+    def set_wave(cls, new_value: str):
+        """Set new wave type, reset cashes.
+
+        Parameters:
+            new_value: str
+                desired beats per minute
+        """
+        cls.WAVE_TYPE = new_value
+        reset_cashes()
 
 
 class Track(object):
@@ -47,7 +76,52 @@ class Track(object):
         notes = notes.strip().replace('\n', '+')
         chords_list = notes.split('+')
         chords = [Chord(chord) for chord in chords_list]
-        self.wave = sum(chords)
+        self.wave = normalize_wave(sum(chords).wave)
+
+    def __add__(self, other):
+        """Add tracks together to get a longer one (Track).
+
+        Parameters:
+            other: Track
+                Just other track
+
+        Returns:
+            Track
+                with concatenated sound wave.
+        """
+        track = Track('0')
+        track.wave = np.concatenate((self.wave, other.wave))
+        return track
+
+    def __radd__(self, other):
+        """Bypass 0 + Track case for sum function.
+
+        Parameters:
+            other: Track
+                Just other Track
+
+        Returns:
+            Track
+                with concatenated sounds.
+        """
+        if isinstance(other, int):
+            return self
+        return self.__add__(other)
+
+    def __mul__(self, other):
+        """Add tracks together to get a mix.
+
+        Parameters:
+            other: Track
+                Just other note
+
+        Returns:
+            Track
+                with combined sounds.
+        """
+        track = Track('0')
+        track.wave = normalize_wave(self.wave + other.wave)
+        return track
 
     def display(self):
         """Use Jupyter feature to render interactive audio."""
@@ -73,10 +147,10 @@ class Track(object):
         """
         if full:
             len_limit = len(self.wave)
-            plot_timeline = Timeline(int(len(self.wave) / NOTE_LENGTH))
+            plot_timeline = Timeline(int(len(self.wave) / Config.NOTE_LENGTH)).wave
         else:
-            len_limit = times * NOTE_LENGTH
-            plot_timeline = Timeline(times)
+            len_limit = times * Config.NOTE_LENGTH
+            plot_timeline = Timeline(times).wave
         plot_sound_wave = self.wave[:len_limit]
         figure(figsize=CHART_SIZE)
         plot(plot_timeline, plot_sound_wave)
@@ -105,7 +179,7 @@ class Track(object):
             distance: float, default: 0.05
                 new value will be multiplied by random value in 1 +/- range
         """
-        self.wave = random_shift(self.wave)
+        self.wave = random_shift(self.wave, distance)
         self.wave = normalize_wave(self.wave)
 
 
@@ -131,7 +205,7 @@ class Chord(object):
         times = len(tail) + 1
         note_list = label.split('*')
         notes = [Note(note, times) for note in note_list]
-        self.wave = sum(notes)
+        self.wave = sum(notes).wave
         if ADSR_ENABLED:
             self.apply_adsr()
         Chord.wave_cash[text] = normalize_wave(self.wave)
@@ -148,9 +222,24 @@ class Chord(object):
             Chord
                 with concatenated sound wave.
         """
-        chord = Chord('0', 0)
+        chord = Chord('0')
         chord.wave = np.concatenate((self.wave, other.wave))
         return chord
+
+    def __radd__(self, other):
+        """Bypass 0 + Chord case for sum function.
+
+        Parameters:
+            other: Chord
+                Just other chord
+
+        Returns:
+            Chord
+                with concatenated sounds.
+        """
+        if isinstance(other, int):
+            return self
+        return self.__add__(other)
 
     def apply_adsr(self):
         """Apply ADSR: https://en.wikipedia.org/wiki/Envelope_(music) ."""
@@ -186,7 +275,10 @@ class Note(object):
             return
         timeline = Timeline(times).wave
         frequency = NOTES.get(note, '0')
-        wave = WAVE_FUNCTIONS[WAVE_TYPE](timeline, frequency)
+        if frequency == 0:
+            self.wave = np.zeros(len(timeline))
+            return
+        wave = WAVE_FUNCTIONS[Config.WAVE_TYPE](timeline, frequency)
         Note.wave_cash[label] = wave
         self.wave = wave
 
@@ -205,6 +297,21 @@ class Note(object):
         note.wave = self.wave + other.wave
         return note
 
+    def __radd__(self, other):
+        """Bypass 0 + Note case for sum function.
+
+        Parameters:
+            other: Note
+                Just other note
+
+        Returns:
+            Note
+                with combined sounds.
+        """
+        if isinstance(other, int):
+            return self
+        return self.__add__(other)
+
 
 class Timeline(object):
     """Collection of arrays to speed-up generation of objects."""
@@ -221,6 +328,6 @@ class Timeline(object):
         if times in Timeline.wave_cash:
             self.wave = Timeline.wave_cash.get(times, 0)
             return
-        wave = np.linspace(0, NOTE_DURATION, num=NOTE_LENGTH)
+        wave = np.linspace(0, Config.NOTE_DURATION*times, num=Config.NOTE_LENGTH*times)
         Timeline.wave_cash[times] = wave.astype(np.float64)
         self.wave = Timeline.wave_cash[times]
