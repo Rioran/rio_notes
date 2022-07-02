@@ -1,3 +1,7 @@
+# ide's
+.idea/
+.vscode/
+
 # Local audio files
 src/
 
