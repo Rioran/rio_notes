@@ -4,13 +4,13 @@ from IPython.display import Audio, display
 from matplotlib.pyplot import figure, plot
 from scipy.io import wavfile
 
+from rionotes.notes import NOTES
 from rionotes.wave_functions import (
     WAVE_FUNCTIONS,
     apply_linearity,
     normalize_wave,
     random_shift,
 )
-from rionotes.notes import NOTES
 
 SAMPLING_RATE = 44100  # like 44.1 KHz for MP3
 CHART_SIZE = (15, 4)
@@ -29,11 +29,11 @@ def reset_cashes():
 class Config(object):
     """Changeable options."""
 
-    BPM = 144
-    NOTE_LENGTH = 18375
-    NOTE_DURATION = 0.4166666666666667
+    bpm = 144
+    note_length = 18375
+    note_duration = 0.4166666666666667
     # t triangular, s sine, sq square, sw saw, bs backsaw
-    WAVE_TYPE = 't'
+    wave_type = 't'
 
     @classmethod
     def set_bpm(cls, new_value: int):
@@ -43,9 +43,9 @@ class Config(object):
             new_value: int
                 desired beats per minute
         """
-        cls.BPM = new_value
-        cls.NOTE_LENGTH = int(SAMPLING_RATE * 60 / cls.BPM)
-        cls.NOTE_DURATION = cls.NOTE_LENGTH / SAMPLING_RATE
+        cls.bpm = new_value
+        cls.note_length = int(SAMPLING_RATE * 60 / cls.bpm)
+        cls.note_duration = cls.note_length / SAMPLING_RATE
         reset_cashes()
 
     @classmethod
@@ -56,7 +56,7 @@ class Config(object):
             new_value: str
                 desired beats per minute
         """
-        cls.WAVE_TYPE = new_value
+        cls.wave_type = new_value
         reset_cashes()
 
 
@@ -147,9 +147,10 @@ class Track(object):
         """
         if full:
             len_limit = len(self.wave)
-            plot_timeline = Timeline(int(len(self.wave) / Config.NOTE_LENGTH)).wave
+            full_times = int(len(self.wave) / Config.note_length)
+            plot_timeline = Timeline(full_times).wave
         else:
-            len_limit = times * Config.NOTE_LENGTH
+            len_limit = times * Config.note_length
             plot_timeline = Timeline(times).wave
         plot_sound_wave = self.wave[:len_limit]
         figure(figsize=CHART_SIZE)
@@ -278,7 +279,7 @@ class Note(object):
         if frequency == 0:
             self.wave = np.zeros(len(timeline))
             return
-        wave = WAVE_FUNCTIONS[Config.WAVE_TYPE](timeline, frequency)
+        wave = WAVE_FUNCTIONS[Config.wave_type](timeline, frequency)
         Note.wave_cash[label] = wave
         self.wave = wave
 
@@ -328,6 +329,8 @@ class Timeline(object):
         if times in Timeline.wave_cash:
             self.wave = Timeline.wave_cash.get(times, 0)
             return
-        wave = np.linspace(0, Config.NOTE_DURATION*times, num=Config.NOTE_LENGTH*times)
+        duration = Config.note_duration * times
+        length = Config.note_length * times
+        wave = np.linspace(0, duration, num=length)
         Timeline.wave_cash[times] = wave.astype(np.float64)
         self.wave = Timeline.wave_cash[times]

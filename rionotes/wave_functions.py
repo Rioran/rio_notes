@@ -3,6 +3,8 @@ from types import MappingProxyType
 
 import numpy as np
 
+VOLUME_CORRECTION = 0.99
+
 
 def generate_wave_sine(timeline: np.array, frequency: float):
     """Transform linear array into sine wave.
@@ -50,7 +52,8 @@ def generate_wave_triangular(timeline: np.array, frequency: float):
             calculated transformation
     """
     raw_triangle = timeline % (1 / frequency) * frequency - 1
-    return np.absolute(np.absolute(raw_triangle) * 2 - 1) * 2 - 1
+    folded_triangle = np.absolute(raw_triangle) * 2 - 1
+    return np.absolute(folded_triangle) * 2 - 1
 
 
 def generate_wave_saw(timeline: np.array, frequency: float):
@@ -128,9 +131,9 @@ def normalize_wave(wave: np.array) -> np.array:
     # No need to divide 0 by 0
     if divisor == 0:
         return wave
-    # Trick with the small number is here to prevent sound from 
+    # Trick with the small number is here to prevent sound from
     # being abs(1), which sounds really bad in wav file
-    return wave / divisor * 0.99
+    return wave / divisor * VOLUME_CORRECTION
 
 
 def random_shift(numbers: np.array, distance: float) -> float:
