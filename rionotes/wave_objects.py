@@ -1,6 +1,5 @@
 """Allows creation of notes based on pure soundwaves."""
 import numpy as np
-from IPython.display import Audio, display
 from matplotlib.pyplot import figure, plot
 from scipy.io import wavfile
 
@@ -122,10 +121,6 @@ class Track(object):
         track = Track('0')
         track.wave = normalize_wave(self.wave + other.wave)
         return track
-
-    def display(self):
-        """Use Jupyter feature to render interactive audio."""
-        display(Audio(self.wave, rate=SAMPLING_RATE))
 
     def save(self, path: str = 'demo.wav'):
         """Save wave into wav file.
