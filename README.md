@@ -1,2 +1,2 @@
 # rio_notes
-Demo sound manipulation with NumPy.
+Compose WAV music using notes notation like 'd2'.
