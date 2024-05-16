@@ -3,7 +3,7 @@ from distutils.core import setup
 
 setup(
     name='rionotes',
-    version='0.1.0',
+    version='0.1.1',
     url='https://github.com/Rioran/rio_notes.git',
     author='Roman Rioran Voronov',
     author_email='voronov_rv@mail.ru',

@@ -152,3 +152,20 @@ def random_shift(numbers: np.array, distance: float) -> float:
     shifts = np.random.rand(len(numbers))
     shift = 1 + distance * (shifts * 2 - 1)
     return numbers * shift
+
+
+def convert_normalized_to_int16(wave: np.array) -> np.array:
+    """Convert 0 to 1 wave values to int16 in order
+    for lame media players to be able to open WAV.
+
+    Parameters:
+        wave: np.array
+            track values to upscale
+
+    Returns:
+        result: np.array
+            output values
+    """
+    upscaled_wave = wave * np.iinfo(np.int16).max
+    result = upscaled_wave.astype(np.int16)
+    return result

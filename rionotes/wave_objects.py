@@ -7,6 +7,7 @@ from rionotes.notes import NOTES
 from rionotes.wave_functions import (
     WAVE_FUNCTIONS,
     apply_linearity,
+    convert_normalized_to_int16,
     normalize_wave,
     random_shift,
 )
@@ -129,7 +130,8 @@ class Track(object):
             path: str, default: 'demo.wav'
                 where and how your track will be saved
         """
-        wavfile.write(path, SAMPLING_RATE, self.wave)
+        integer_wave = convert_normalized_to_int16(self.wave)
+        wavfile.write(path, SAMPLING_RATE, self.integer_wave)
 
     def plot(self, times: int = 1, full=False):
         """Use Jupyter feature to render wave chart.
