@@ -11,7 +11,7 @@ Complex usage example can be found here: https://colab.research.google.com/drive
 - `a1+a2` - use '+' to separate consequent notes.
 - `a1*a2` - use '*' to play notes simultaneously.
 - You can use new lines and spaces - they will be ignored for sound creation.
-- '0' - use zero to make a base length silence. '-' can also be applied to extend duration.
+- `0` - use zero to make a base length silence. '-' can also be applied to extend duration.
 
 ### sound waves
 
