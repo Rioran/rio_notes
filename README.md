@@ -3,6 +3,15 @@ Compose WAV music using notes notation like 'd2'.
 
 Complex usage example can be found here: https://colab.research.google.com/drive/1hX11v2cn76Shgie1vkU6z8D6seEk01cy?usp=sharing
 
+### syntax
+
+- `a1` - how you type a note, 'a' for note, '1' for octave.
+- `as1` - add 's' to make note sharped. Only sharping is allowed to change note by a semitone. 'e' can not be sharped since 'f' variant already exists.
+- `a1-` - use '-' to increase note length by 1 time. You can use multiple '-' in succession like this 'a1---' which is 4 times the base note.
+- `a1+a2` - use '+' to separate consequent notes.
+- `a1*a2` - use '*' to play notes simultaneously.
+- You can use new lines and spaces - they will be ignored for sound creation.
+
 ### sound waves
 
 There are 5 types of supported wave types:
