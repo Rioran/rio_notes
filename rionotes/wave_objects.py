@@ -131,7 +131,7 @@ class Track(object):
                 where and how your track will be saved
         """
         integer_wave = convert_normalized_to_int16(self.wave)
-        wavfile.write(path, SAMPLING_RATE, self.integer_wave)
+        wavfile.write(path, SAMPLING_RATE, integer_wave)
 
     def plot(self, times: int = 1, full=False):
         """Use Jupyter feature to render wave chart.
